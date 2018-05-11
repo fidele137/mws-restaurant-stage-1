@@ -4,6 +4,19 @@ let restaurants,
 var map;
 var markers = [];
 
+// // Add an Intersection observer to load only images wich are inside the viewport and its surroundings
+// // https://w3c.github.io/IntersectionObserver/
+// var observer = new IntersectionObserver(changes => {
+//   for (const change of changes) {
+//     console.log(change.time);               // Timestamp when the change occurred
+//     console.log(change.rootBounds);         // Unclipped area of root
+//     console.log(change.boundingClientRect); // target.boundingClientRect()
+//     console.log(change.intersectionRect);   // boundingClientRect, clipped by its containing block ancestors, and intersected with rootBounds
+//     console.log(change.intersectionRatio);  // Ratio of intersectionRect area to boundingClientRect area
+//     console.log(change.target);             // the Element target
+//   }
+// }, {});
+
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
@@ -11,22 +24,58 @@ document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
   fetchCuisines();
   registerServiceWorker();
+  // observeImages();
 });
+
+/**
+ * Observe images position from viewport
+ */
+// observeImages = () => {
+//   const targets = document.querySelectorAll('.restaurant-img');
+//   console.log('targets = ', targets);
+
+//   // Watch for intersection events on a specific target Element.
+//   targets.forEach((target) => {
+//     observer.observe(target);
+//   });
+
+//   // // Stop watching for intersection events on a specific target Element.
+//   // targets.forEach((target) => {
+//   //   observer.unobserve(target);
+//   // });
+
+//   // // Stop observing threshold events on all target elements.
+//   // targets.forEach((target) => {
+//   //   observer.disconnect();
+//   // });
+// }
 
 /**
  * Register ServiceWorker at page load
  */
-
 registerServiceWorker = () => {
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then((reg) => {
-        console.log('ServiceWorker successfully registered !');
-      })
-      .catch((e) => {
-        console.error('Error registering the service worker', e);
+  if (!navigator.serviceWorker) return;
+
+  navigator.serviceWorker.register('/service-worker.js')
+    .then((reg) => {
+      console.log('ServiceWorker successfully registered !');
+      if (!navigator.serviceWorker.controller) return;
+
+      if (reg.waiting) {
+        console.log('Service worker WAITING..., [updateReady]');
+      }
+
+      if (reg.installing) {
+        console.log('Service worker INSTALLING..., [trackInstalling]');
+      }
+
+      reg.addEventListener('updatefound', () => {
+        console.log('Service worker Update Found, [trackInstalling]');
       });
-  }
+    })
+    .catch((e) => {
+      console.error('Error registering the service worker', e);
+    });
 }
 
 /**
