@@ -1,4 +1,28 @@
 @charset "utf-8";
+
+/* Variables */
+:root {
+  --mws-white: #fff;
+  --mws-black: #000;
+  --mws-lightgrey: lightgrey;
+  --mws-body-bg: #fdfdfd;
+  --mws-333: #333;
+  --mws-666: #666;
+  --mws-breadcrumb-hover: #01447e;
+  --mws-nav-bg: #252831;
+  --mws-a-clr: #0000a0;
+  --mws-bg: #f3f3f3;
+  --mws-map-bg: #ccc;
+  --mws-default-clr: #800000;
+  --mws-filter-bg: #3397db;
+  --mws-cuisine-clr: #ddd;
+  --mws-border-clr: #eee;
+  --mws-footer-clr: #f5f5f5;
+  --mws-footer-bg: #444;
+  --mws-footer-link-clr: #e9e97c;
+  --mws-rvw-border: #d9d9d9;
+}
+
 /* CSS Document */
 
 img {
@@ -11,34 +35,34 @@ td,
 th,
 p {
   font: 10pt/1.5 Arial, Helvetica, sans-serif;
-	color: #333;
+	color: var(--mws-333);
 }
 
 body {
   position: relative;
-	background-color: #fdfdfd;
+	background-color: var(--mws-body-bg);
   margin: 0;
 }
 
 ul,
 li {
   font: 10pt Arial, Helvetica, sans-serif;
-	color: #333;
+	color: var(--mws-333);
 }
 
 a {
-	color: #800000;
+	color: var(--mws-default-clr);
 	text-decoration: none;
 }
 
 a:hover,
 a:focus {
-	color: #3397db;
+	color: var(--mws-filter-bg);
 	text-decoration: none;
 }
 
 a img{
-	border: none 0px #fff;
+	border: none 0px var(--mws-white);
 }
 
 h1,
@@ -67,13 +91,13 @@ section {
 }
 
 main {
-  background-color: #f3f3f3;
+  background-color: var(--mws-bg);
   min-height: 100%;
 }
 
 footer {
-  background-color: #444;
-  color: #f5f5f5;
+  background-color: var(--mws-footer-bg);
+  color: var(--mws-footer-clr);
   font-size: 8pt;
   letter-spacing: 1px;
   padding: 25px;
@@ -82,7 +106,7 @@ footer {
 }
 
 footer a {
-  color: #e9e97c;
+  color: var(--mws-footer-link-clr);
 }
 
 /* ====================== Navigation ====================== */
@@ -91,7 +115,7 @@ nav {
   display: flex;
   width: 100%;
   height: 80px;
-  background-color: #252831;
+  background-color: var(--mws-nav-bg);
   text-align: center;
 }
 
@@ -100,7 +124,7 @@ nav h1 {
 }
 
 nav h1 a {
-  color: #fff;
+  color: var(--mws-white);
   font-size: 14pt;
   font-weight: 200;
   letter-spacing: 10px;
@@ -110,7 +134,7 @@ nav h1 a {
 #breadcrumb {
   padding: 10px 40px 16px;
   list-style: none;
-  background-color: #eee;
+  background-color: var(--mws-border-clr);
   font-size: 17px;
   margin: 0;
   max-width: 100%;
@@ -124,19 +148,19 @@ nav h1 a {
 /* Add a slash symbol (/) before/behind each list item */
 #breadcrumb li+li:before {
   padding: 8px;
-  color: black;
+  color: var(--mws-black);
   content: "/\00a0";
 }
 
 /* Add a color to all links inside the list */
 #breadcrumb li a {
-  color: #0000a0;
+  color: var(--mws-a-clr);
   text-decoration: none;
 }
 
 /* Add a color on mouse-over */
 #breadcrumb li a:hover {
-  color: #01447e;
+  color: var(--mws-breadcrumb-hover);
   text-decoration: underline;
 }
 
@@ -146,28 +170,28 @@ nav h1 a {
   min-height: 50vw;
   width: 100%;
   max-width: 100%;
-  background-color: #ccc;
+  background-color: var(--mws-map-bg);
 }
 
 /* ====================== Restaurant Filtering ====================== */
 
 .filter-options {
   width: 100%;
-  background-color: #3397db;
+  background-color: var(--mws-filter-bg);
   text-align: center;
   box-sizing: border-box;
-  border: 2px solid lightgrey;
+  border: 2px solid var(--mws-lightgrey);
 }
 
 .filter-options h2 {
-  color: white;
+  color: var(--mws-white);
   font: normal 1rem/1;
   margin: 0 20px;
 }
 
 .filter-options select {
-  background-color: white;
-  border: 1px solid #fff;
+  background-color: var(--mws-white);
+  border: 1px solid var(--mws-white);
   font: 11pt Arial, sans-serif;
   height: 35px;
   letter-spacing: 0;
@@ -182,7 +206,7 @@ nav h1 a {
 #restaurants-list {
   display: grid;
   grid-template-columns: 1fr;
-  background-color: #f3f3f3;
+  background-color: var(--mws-bg);
   list-style: outside none none;
   margin: 0;
   padding: 30px 15px 60px;
@@ -190,8 +214,8 @@ nav h1 a {
 }
 
 #restaurants-list li {
-  background-color: #fff;
-  border: 2px solid #ccc;
+  background-color: var(--mws-white);
+  border: 2px solid var(--mws-map-bg);
   font-family: Arial, sans-serif;
   margin: 15px auto;
   min-height: 380px;
@@ -201,7 +225,7 @@ nav h1 a {
 }
 
 #restaurants-list .restaurant-img {
-  background-color: #ccc;
+  background-color: var(--mws-map-bg);
   display: block;
   margin: auto;
   min-height: 248px;
@@ -220,7 +244,7 @@ nav h1 a {
 }
 
 #restaurants-list li h2 {
-  color: #800000;
+  color: var(--mws-default-clr);
   font: 200 14pt/1.3 Arial, sans-serif;
   letter-spacing: 0;
   margin: 20px 0 10px;
@@ -233,9 +257,9 @@ nav h1 a {
 }
 
 #restaurants-list li a {
-  background-color: #800000;
-  border-bottom: 3px solid #eee;
-  color: #fff;
+  background-color: var(--mws-default-clr);
+  border-bottom: 3px solid var(--mws-border-clr);
+  color: var(--mws-white);
   display: inline-block;
   font-size: 10pt;
   margin: 15px 0 0;
@@ -258,13 +282,13 @@ nav h1 a {
 }
 
 .inside #map {
-  background-color: #ccc;
+  background-color: var(--mws-map-bg);
   min-height: 50vw;
   width: 100%;
 }
 
 #restaurant-name {
-  color: #800000;
+  color: var(--mws-default-clr);
   font: 200 20pt/1.1 Arial,sans-serif;
   letter-spacing: 0;
   margin: 15px 0 30px;
@@ -277,8 +301,8 @@ nav h1 a {
 }
 
 #restaurant-cuisine {
-  background-color: #333;
-  color: #ddd;
+  background-color: var(--mws-333);
+  color: var(--mws-cuisine-clr);
   font: 300 12pt;
   letter-spacing: 10px;
   margin-bottom: 20px;
@@ -289,13 +313,13 @@ nav h1 a {
 
 #restaurant-container,
 #reviews-container {
-  border-bottom: 1px solid #d9d9d9;
-  border-top: 1px solid #fff;
+  border-bottom: 1px solid var(--mws-rvw-border);
+  border-top: 1px solid var(--mws-white);
   padding: 40px;
 }
 
 #reviews-container h2 {
-  color: #800000;
+  color: var(--mws-default-clr);
   font-size: 300 24pt;
   letter-spacing: -1px;
   padding-bottom: 1pt;
@@ -310,8 +334,8 @@ nav h1 a {
 }
 
 #reviews-list li {
-  background-color: #fff;
-  border: 2px solid #f3f3f3;
+  background-color: var(--mws-white);
+  border: 2px solid var(--mws-bg);
   display: block;
   list-style-type: none;
   overflow: hidden;
@@ -328,8 +352,81 @@ nav h1 a {
 }
 
 #restaurant-hours td {
-  color: #666;
+  color: var(--mws-666);
 }
+
+/* Review form */
+form#review-form {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-gap: 0.6rem;
+  align-items: center;
+}
+
+#review-form h3 {
+  color: var(--mws-default-clr);
+  grid-column: span 2;
+  text-align: center;
+}
+
+#review-form label {
+  font-weight: 700;
+  text-align: right;
+}
+
+.rating-container {
+  display: flex;
+  align-items: center;
+}
+
+.stars-outer {
+  font-size: 24px;
+  position: relative;
+  display: inline-block;
+  /* width: fit-content; */
+  margin-right: .6rem;
+}
+
+.stars-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.stars-outer::before {
+  content: '★ ★ ★ ★ ★';
+  color: var(--mws-lightgrey);
+}
+
+.stars-inner::before {
+  content: '★ ★ ★ ★ ★';
+  color: var(--mws-default-clr);
+}
+
+#review-form button[type="submit"] {
+  grid-column: 2/3;
+  background: var(--mws-default-clr);
+  color: var(--mws-bg);
+  padding: 10px 0;
+  border: none;
+  outline: none;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12),
+    0 3px 1px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* #review-form button[type="submit"]:hover {
+  color: var(--mws-default-clr);
+  background: var(--mws-bg);
+} */
 
 /* ====================== Screens of size >= 769px  ====================== */
 
