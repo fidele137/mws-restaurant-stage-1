@@ -96,23 +96,62 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 /**
  * Create all reviews HTML and add them to the webpage.
  */
-fillReviewsHTML = (reviews = self.restaurant.reviews) => {
-  const container = document.getElementById('reviews-container');
-  const title = document.createElement('h2');
-  title.innerHTML = 'Reviews';
-  container.appendChild(title);
-
-  if (!reviews) {
-    const noReviews = document.createElement('p');
-    noReviews.innerHTML = 'No reviews yet!';
-    container.appendChild(noReviews);
-    return;
-  }
-  const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
-    ul.appendChild(createReviewHTML(review));
+// fillReviewsHTML = (reviews = self.restaurant.reviews) => {
+fillReviewsHTML = () => {
+  let reviews;
+  DBHelper.fetchRewiewsForRestaurant((error, reviewsForRestaurant) => {
+    reviews = reviewsForRestaurant;
+    const container = document.getElementById('reviews-container');
+    const title = document.createElement('h2');
+    title.innerHTML = 'Reviews';
+    container.appendChild(title);
+  
+    if (!reviews) {
+      const noReviews = document.createElement('p');
+      noReviews.innerHTML = 'No reviews yet!';
+      container.appendChild(noReviews);
+      return;
+    }
+    const ul = document.getElementById('reviews-list');
+    reviews.forEach(review => {
+      ul.appendChild(createReviewHTML(review));
+    });
+    const reviewForm = createReviewFormHTML();
+    ul.appendChild(reviewForm)
+    container.appendChild(ul);
+    addListenerToRatingStars();
   });
-  container.appendChild(ul);
+
+}
+
+/**
+ * Listen to rating stars input and act accordingly.
+ */
+addListenerToRatingStars = () => {
+  const ratingInput = document.querySelector('#rating');
+  const starsOuter = document.querySelector('.stars-outer');
+  const starsInner = document.querySelector('.stars-inner');
+
+  const totalWidthString = window.getComputedStyle(starsOuter).width;
+  const totalWidth = parseFloat(totalWidthString.substr(0, totalWidthString.indexOf('px')));
+  starsOuter.addEventListener('click', (e) => {
+    const calculatedWidth = Math.round(e.offsetX * 10) / 10;
+    starsInner.style.width = `${calculatedWidth}px`;
+    ratingInput.value = widthToRating(calculatedWidth);
+  });
+
+  ratingInput.addEventListener('input', (e) => {
+    const rating = e.target.value;
+    starsInner.style.width = `${ratingToWidth(rating)}px`;
+  })
+
+  const widthToRating = (width) => {
+    return Math.round((width/totalWidth)*5 * 10) / 10;
+  }
+
+  const ratingToWidth = (rating) => {
+    return Math.round((rating/5)*totalWidth * 10) / 10;
+  }
 }
 
 /**
@@ -125,7 +164,8 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  // date.innerHTML = review.date;
+  date.innerHTML = (new Date(review.updatedAt)).toDateString();
   li.appendChild(date);
 
   const rating = document.createElement('p');
@@ -136,6 +176,49 @@ createReviewHTML = (review) => {
   comments.innerHTML = review.comments;
   li.appendChild(comments);
 
+  return li;
+}
+
+/**
+ * Create review form HTML and add it to the webpage.
+ */
+createReviewFormHTML = () => {
+  const li = document.createElement('li');
+  const form = document.querySelector('template#form-template').content.querySelector('#review-form');
+  
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    console.log(e);
+    const ratingInput = form.querySelector('#rating');
+    const commentTextarea = form.querySelector('#comment');
+    const formLi = form.parentElement;
+
+    const ul = document.getElementById('reviews-list');
+
+    const review = {
+      id: parseInt(ul.childNodes.length) + 1,
+      restaurant_id: self.restaurant.id,
+      name: self.restaurant.name,
+      rating: parseFloat(ratingInput.value),
+      createdAt: Number(new Date),
+      updatedAt: Number(new Date),
+      comments: commentTextarea.value
+    };
+
+    ul.insertBefore(createReviewHTML(review), formLi);
+    console.log('review object = ', review);
+
+    fetch('http://localhost:1337/reviews/', {
+      method: 'POST',
+      body: JSON.stringify(review),
+      headers: {
+        'content-type': 'application/json'
+      }
+    })
+    .then(response => console.log(response.json()))
+    .catch(e => console.log(e));
+  });
+  li.appendChild(form);
   return li;
 }
 

@@ -15,6 +15,14 @@ class DBHelper {
   /**
    * Idb database name.
    */
+  static get REVIEWS_URL() {
+    const port = 1337 // Change this to your server port
+    return `http://localhost:${port}/reviews`;
+  }
+
+  /**
+   * Idb database name.
+   */
   static get IDB_DATABASE_NAME() {
     return `mws-restaurant-idb`;
   }
@@ -95,7 +103,6 @@ class DBHelper {
           });
         }
       };
-
     });
   }
 
@@ -207,6 +214,7 @@ class DBHelper {
     });
   }
 
+  
   /**
    * Fetch all cuisines with proper error handling.
    */
@@ -221,6 +229,40 @@ class DBHelper {
         // Remove duplicates from cuisines
         const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i)
         callback(null, uniqueCuisines);
+      }
+    });
+  }
+
+    /**
+   * Fetch all with proper error handling.
+   */
+  static fetchReviews(callback) {
+    // Fetch reviews by restaurant id
+    fetch(DBHelper.REVIEWS_URL)
+      .then((response) => {
+        return response.json();
+      })
+      .then((reviews) => {
+        callback(null, reviews);
+      })
+      .catch((e) => {
+        const error = `fetch reviews failed`;
+        console.log('err = ', e);
+        callback(error, null);
+    });
+  }
+
+  /**
+   * Fetch all reviews for a restaurant with proper error handling.
+   */
+  static fetchRewiewsForRestaurant(callback) {
+    // Fetch reviews by restaurant id
+    DBHelper.fetchReviews((error, reviews) => {
+      if (error) {
+        callback(error, null);
+      } else {
+        const reviewsForRestaurant = reviews.filter(review => review.restaurant_id === self.restaurant.id);
+        callback(null, reviewsForRestaurant);
       }
     });
   }

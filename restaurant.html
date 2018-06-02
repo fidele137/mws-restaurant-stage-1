@@ -48,6 +48,27 @@
     <!-- Beginning reviews -->
     <section id="reviews-container">
       <ul id="reviews-list"></ul>
+      <template id="form-template">
+        <!-- <form action="http://localhost:1337/reviews/" method="POST"> -->
+        <form id="review-form" action="" method="post">
+          <h3>Leave your review:</h3>
+          <label for="name">Name</label>
+          <input type="text" id="name" name="name" autocomplete="name" required>
+
+          <label for="rating">Rating</label>
+          <div class="rating-container">
+            <span class="stars-outer">
+              <span class="stars-inner"></span>
+            </span>
+            <input type="number" id="rating" name="rating" min="0" max="5" step="0.1" required>
+          </div>
+
+          <label for="comment">Comment</label>
+          <textarea name="comment" id="comment" rows="4"></textarea>
+
+          <button type="submit">Submit review</button>
+        </form>
+      </template>
     </section>
     <!-- End reviews -->
   </main>
