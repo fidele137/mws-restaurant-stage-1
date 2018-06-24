@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <!-- Normalize.css for better cross-browser consistency -->
-  <link rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" />
+  <!-- <link rel="stylesheet" src="//normalize-css.googlecode.com/svn/trunk/normalize.css" /> -->
   <!-- Main CSS file -->
   <link rel="stylesheet" href="css/styles.css">
   <meta name="theme-color" content="#fff">
@@ -38,7 +38,10 @@
     <!-- End map -->
     <!-- Beginning restaurant -->
     <section id="restaurant-container">
-      <h2 id="restaurant-name"></h2>
+      <div class="name-and-favorite">
+        <h2 id="restaurant-name"></h2>
+        <button>★</button>
+      </div>
       <img id="restaurant-img">
       <p id="restaurant-cuisine"></p>
       <p id="restaurant-address"></p>
@@ -48,6 +51,7 @@
     <!-- Beginning reviews -->
     <section id="reviews-container">
       <ul id="reviews-list"></ul>
+      <!-- review form template -->
       <template id="form-template">
         <!-- <form action="http://localhost:1337/reviews/" method="POST"> -->
         <form id="review-form" action="" method="post">
@@ -60,11 +64,11 @@
             <span class="stars-outer">
               <span class="stars-inner"></span>
             </span>
-            <input type="number" id="rating" name="rating" min="0" max="5" step="0.1" required>
+            <input type="number" id="rating" name="rating" min="0" max="5" step="0.5" required>
           </div>
 
           <label for="comment">Comment</label>
-          <textarea name="comment" id="comment" rows="4"></textarea>
+          <textarea name="comment" id="comment" rows="8"></textarea>
 
           <button type="submit">Submit review</button>
         </form>

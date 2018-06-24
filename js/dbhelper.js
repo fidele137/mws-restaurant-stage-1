@@ -31,14 +31,21 @@ class DBHelper {
    * Idb database version.
    */
   static get IDB_VERSION() {
-    return 1;
+    return 2;
   }
 
   /**
-   * Idb store name.
+   * Idb restaurants store name.
    */
-  static get IDB_STORE_NAME() {
+  static get IDB_RESTAURANT_STORE_NAME() {
     return 'restaurants';
+  }
+
+  /**
+   * Idb reviews store name.
+   */
+  static get IDB_REVIEW_STORE_NAME() {
+    return 'reviews';
   }
 
   /**
@@ -47,8 +54,6 @@ class DBHelper {
   static openIndexedDB(callback) {
     // Using vanilla IndexedDB here instead of idb
     // Understanding how it is used compared with idb-with-promises
-    // Seems to work seemlessly since we only have one version of the database
-    // But for more than one version, idb has to be preferred !
 
     if (!navigator.serviceWorker || !window.indexedDB) {
       return console.log('IndexedDB is not supported in your current browser');
@@ -68,7 +73,12 @@ class DBHelper {
 
     idbRequest.onupgradeneeded = (event) => {
       var restaurantStore = event.currentTarget.result.createObjectStore(
-        DBHelper.IDB_STORE_NAME, { keyPath: 'id' });
+        DBHelper.IDB_RESTAURANT_STORE_NAME, { keyPath: 'id' }
+      );
+
+      var reviewStore = event.currentTarget.result.createObjectStore(
+        DBHelper.IDB_REVIEW_STORE_NAME, { keyPath: 'id' }
+      );
     };
   }
 
@@ -94,11 +104,6 @@ class DBHelper {
               callback(error, null);
             } else {
               callback(null, restaurants);
-              var tx = db.transaction('restaurants', 'readwrite');
-              var restaurantStore = tx.objectStore('restaurants');
-              restaurants.forEach((restaurant) => {
-                restaurantStore.put(restaurant);
-              });
             }
           });
         }
@@ -116,12 +121,16 @@ class DBHelper {
       })
       .then((restaurants) => {
         callback(null, restaurants);
+
+        DBHelper.openIndexedDB((db) => {
+          var tx = db.transaction('restaurants', 'readwrite');
+          var restaurantStore = tx.objectStore('restaurants');
+          restaurants.forEach((restaurant) => {
+            restaurantStore.put(restaurant);
+          });
+        });
       })
-      .catch((e) => {
-        const error = `Request failed`;
-        console.log('err = ', e);
-        callback(error, null);
-      });
+      .catch(error => callback(error, null));
   }
 
   /**
@@ -140,6 +149,17 @@ class DBHelper {
           callback('Restaurant does not exist', null);
         }
       }
+    });
+  }
+
+  /**
+   * Change restaurant favorite status (is_favorite = true or false)
+   */
+  static changeRestaurantFavoriteStatus(restaurant) {
+    DBHelper.openIndexedDB((db) => {
+      var tx = db.transaction('restaurants', 'readwrite');
+      var restaurantStore = tx.objectStore('restaurants');
+      restaurantStore.put(restaurant);
     });
   }
 
@@ -184,7 +204,7 @@ class DBHelper {
       if (error) {
         callback(error, null);
       } else {
-        let results = restaurants
+        let results = restaurants;
         if (cuisine != 'all') { // filter by cuisine
           results = results.filter(r => r.cuisine_type == cuisine);
         }
@@ -206,9 +226,9 @@ class DBHelper {
         callback(error, null);
       } else {
         // Get all neighborhoods from all restaurants
-        const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood)
+        const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood);
         // Remove duplicates from neighborhoods
-        const uniqueNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i)
+        const uniqueNeighborhoods = neighborhoods.filter((v, i) => neighborhoods.indexOf(v) == i);
         callback(null, uniqueNeighborhoods);
       }
     });
@@ -225,9 +245,9 @@ class DBHelper {
         callback(error, null);
       } else {
         // Get all cuisines from all restaurants
-        const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type)
+        const cuisines = restaurants.map((v, i) => restaurants[i].cuisine_type);
         // Remove duplicates from cuisines
-        const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i)
+        const uniqueCuisines = cuisines.filter((v, i) => cuisines.indexOf(v) == i);
         callback(null, uniqueCuisines);
       }
     });
@@ -237,19 +257,70 @@ class DBHelper {
    * Fetch all with proper error handling.
    */
   static fetchReviews(callback) {
-    // Fetch reviews by restaurant id
-    fetch(DBHelper.REVIEWS_URL)
+    let idbReviews = [];
+    DBHelper.openIndexedDB((db) => {
+      var tx = db.transaction('reviews', 'readwrite');
+      var reviewStore = tx.objectStore('reviews');
+      var request = reviewStore.getAll();
+      request.onsuccess = (event) => {
+        idbReviews = event.target.result;
+        if (idbReviews.length !== 0) {
+          callback(null, idbReviews);
+        } else {
+          return DBHelper.fetchReviewsFromNetwork((error, reviews) => {
+            if (error) {
+              callback(error, null);
+            } else {
+              callback(null, reviews);
+            }
+          });
+        }
+      }
+    });
+  }
+
+  /**
+   * Fetch all from network with proper error handling.
+   */
+  static fetchReviewsFromNetwork(callback) {
+    // Trying to fetch all reviews with *REVIEWS_URL* doesn't work (bug with the server)
+    // So we will get reviews from each restaurants and concatenate the results
+
+    /* fetch(DBHelper.REVIEWS_URL)
       .then((response) => {
         return response.json();
       })
       .then((reviews) => {
         callback(null, reviews);
+        DBHelper.openIndexedDB((db) => {
+          var tx = db.transaction('reviews', 'readwrite');
+          var reviewStore = tx.objectStore('reviews');
+          reviews.forEach(review => {
+            reviewStore.put(review);
+          });
+        });
       })
-      .catch((e) => {
-        const error = `fetch reviews failed`;
-        console.log('err = ', e);
-        callback(error, null);
-    });
+      .catch(error => callback(error, null)); */
+
+      let allReviews = [];
+      DBHelper.fetchRestaurants(async (error, restaurants) => {
+        try {
+          for (let restaurant of restaurants) {
+            const reviewsForRestaurant = await DBHelper.fetchRewiewsForRestaurantFromNetwork(restaurant);
+            allReviews = [...allReviews, ...reviewsForRestaurant];
+          }
+          callback(null, allReviews);
+          DBHelper.openIndexedDB((db) => {
+            var tx = db.transaction('reviews', 'readwrite');
+            var reviewStore = tx.objectStore('reviews');
+            allReviews.forEach(review => {
+              reviewStore.put(review);
+            });
+          });
+        } catch(error) {
+          callback(error, null);
+        }
+      });
   }
 
   /**
@@ -268,6 +339,48 @@ class DBHelper {
   }
 
   /**
+   * Fetch all reviews for a restaurant from Network with proper error handling.
+   */
+  static async fetchRewiewsForRestaurantFromNetwork(restaurant) {
+    let reviewsForRestaurant = await fetch(`${DBHelper.REVIEWS_URL}/?restaurant_id=${restaurant.id}`);
+    return reviewsForRestaurant.json();
+  }
+
+  /**
+   * Add a review to a restaurant
+   */
+  static addReview(review) {
+    DBHelper.openIndexedDB((db) => {
+      var tx = db.transaction('reviews', 'readwrite');
+      var reviewStore = tx.objectStore('reviews');
+      reviewStore.add(review);
+    });
+  }
+
+  /**
+   * Modify a restaurant's review
+   */
+  static modifyReview(review) {
+    review.updatedAt = Number(new Date());
+    DBHelper.openIndexedDB((db) => {
+      var tx = db.transaction('reviews', 'readwrite');
+      var reviewStore = tx.objectStore('reviews');
+      reviewStore.put(review);
+    });
+  }
+
+  /**
+   * Delete a restaurant's review
+   */
+  static deleteReview(review) {
+    DBHelper.openIndexedDB((db) => {
+      var tx = db.transaction('reviews', 'readwrite');
+      var reviewStore = tx.objectStore('reviews');
+      reviewStore.delete(review.id);
+    });
+  }
+
+  /**
    * Restaurant page URL.
    */
   static urlForRestaurant(restaurant) {
@@ -277,16 +390,17 @@ class DBHelper {
   /**
    * Restaurant image utils.
    */
+  static imageUrlPlaceholder() {
+    return `/img/1_small.webp`;
+  }
+
   static imageUrlForRestaurant(restaurant) {
     let imgName;
     // The photograph property of restaurant *10* is missing from the server restaurants data
-    // A pull request have already been created, but not merged yet
-    // We will server img10 as a fallback if there is no id
     if (!restaurant.photograph) {
       imgName = '10';
     } else {
-      const jpgIndex = restaurant.photograph.indexOf('.jpg');
-      imgName = jpgIndex > -1 ? restaurant.photograph.substring(0, jpgIndex) : restaurant.photograph;
+      imgName = restaurant.photograph.split('.')[0];
     }
     return `/img/${imgName}_small.webp`;
   }
@@ -297,8 +411,7 @@ class DBHelper {
     if (!restaurant.photograph) {
       imgName = '10';
     } else {
-      const jpgIndex = restaurant.photograph.indexOf('.jpg');
-      imgName = jpgIndex > -1 ? restaurant.photograph.substring(0, jpgIndex) : restaurant.photograph;
+      imgName = restaurant.photograph.split('.')[0];
     }
     return `/img/${imgName}_small.webp 400w, /img/${imgName}_medium.webp 600w, /img/${imgName}_large.webp 800w`;
   }

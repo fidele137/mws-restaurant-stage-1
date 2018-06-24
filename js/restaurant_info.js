@@ -1,5 +1,38 @@
 let restaurant;
+let allReviews;
 var map;
+
+document.addEventListener('DOMContentLoaded', (event) => {
+  registerServiceWorker();
+});
+
+/**
+ * Register ServiceWorker at page load
+ */
+registerServiceWorker = () => {
+  if (!navigator.serviceWorker) return;
+
+  navigator.serviceWorker.register('/service-worker.js')
+    .then((reg) => {
+      console.log('ServiceWorker successfully registered !');
+      if (!navigator.serviceWorker.controller) return;
+
+      if (reg.waiting) {
+        console.log('Service worker WAITING..., [updateReady]');
+      }
+
+      if (reg.installing) {
+        console.log('Service worker INSTALLING..., [trackInstalling]');
+      }
+
+      reg.addEventListener('updatefound', () => {
+        console.log('Service worker Update Found, [trackInstalling]');
+      });
+    })
+    .catch((e) => {
+      console.error('Error registering the service worker', e);
+    });
+}
 
 /**
  * Initialize Google map, called from HTML.
@@ -49,8 +82,56 @@ fetchRestaurantFromURL = (callback) => {
  * Create restaurant HTML and add it to the webpage
  */
 fillRestaurantHTML = (restaurant = self.restaurant) => {
+  const nameAndFavorite = document.querySelector('.name-and-favorite');
+
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
+
+  const favoriteToggle = nameAndFavorite.querySelector('button');
+  if (restaurant.is_favorite) {
+    favoriteToggle.classList.add('favorite-toogle');
+  }
+
+  favoriteToggle.addEventListener('click', () => {
+    const restaurantId = restaurant.id;
+    favoriteToggle.classList.toggle('favorite-toogle');
+    let isFavorite = favoriteToggle.classList.contains('favorite-toogle') ? true : false;
+
+    restaurant.is_favorite = isFavorite;
+    restaurant.updatedAt = Number(new Date());
+    const restaurantUpdated = {
+      is_favorite: restaurant.isFavorite,
+      updatedAt: restaurant.updatedAt
+    };
+
+    DBHelper.changeRestaurantFavoriteStatus(restaurant);
+
+    // put restaurant as favorite
+    const changeFavoriteStatus = () => {
+      return fetch(`http://localhost:1337/restaurants/${restaurantId}/?`, {
+        method: 'PUT',
+        body: JSON.stringify(restaurantUpdated),
+        headers: {
+          'content-type': 'application/json'
+        }
+      });
+    }
+
+    changeFavoriteStatus()
+      .then(response => {
+        console.log(response.json());
+        if (navigator.onLine) {
+          window.removeEventListener('online', changeFavoriteStatus);
+        }
+      })
+      .catch(e => {
+        console.log(e);
+        if (!navigator.onLine) {
+          window.addEventListener('online', changeFavoriteStatus);
+        }
+      });
+  
+  });
 
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
@@ -100,26 +181,49 @@ fillRestaurantHoursHTML = (operatingHours = self.restaurant.operating_hours) => 
 fillReviewsHTML = () => {
   let reviews;
   DBHelper.fetchRewiewsForRestaurant((error, reviewsForRestaurant) => {
-    reviews = reviewsForRestaurant;
-    const container = document.getElementById('reviews-container');
-    const title = document.createElement('h2');
-    title.innerHTML = 'Reviews';
-    container.appendChild(title);
+    if (error) {
+      console.log('error fetching reviews for restaurant');
+    } else { 
+      reviews = reviewsForRestaurant;
+      const container = document.getElementById('reviews-container');
+      const title = document.createElement('h2');
+      title.innerHTML = 'Reviews';
+      container.appendChild(title);
+    
+      if (!reviews) {
+        const noReviews = document.createElement('p');
+        noReviews.innerHTML = 'No reviews yet!';
+        container.appendChild(noReviews);
+        return;
+      }
+      const ul = document.getElementById('reviews-list');
+      reviews.forEach(review => {
+        ul.appendChild(createReviewHTML(review));
+      });
+      // review form
+      const reviewForm = createReviewFormHTML();
+      ul.appendChild(reviewForm);
+      container.appendChild(ul);
   
-    if (!reviews) {
-      const noReviews = document.createElement('p');
-      noReviews.innerHTML = 'No reviews yet!';
-      container.appendChild(noReviews);
-      return;
+      container.addEventListener('click', (e) => {
+        const target = e.target;
+        const menus = [...document.querySelectorAll('.name-and-menu input')];
+        menus.forEach(menu => {
+          if (menu != target && menu.checked) {
+            // hide popup when clicking outside the popup
+            menu.checked = false;
+          }
+        });
+      });
     }
-    const ul = document.getElementById('reviews-list');
-    reviews.forEach(review => {
-      ul.appendChild(createReviewHTML(review));
-    });
-    const reviewForm = createReviewFormHTML();
-    ul.appendChild(reviewForm)
-    container.appendChild(ul);
-    addListenerToRatingStars();
+  });
+
+  DBHelper.fetchReviews((error, reviews) => {
+    if (error) {
+      console.log(error);
+    } else {
+      self.allReviews = reviews;
+    }
   });
 
 }
@@ -127,15 +231,19 @@ fillReviewsHTML = () => {
 /**
  * Listen to rating stars input and act accordingly.
  */
-addListenerToRatingStars = () => {
-  const ratingInput = document.querySelector('#rating');
-  const starsOuter = document.querySelector('.stars-outer');
-  const starsInner = document.querySelector('.stars-inner');
+addListenerToRatingStars = (form) => {
+  const ratingInput = form.querySelector('#rating');
+  const starsOuter = form.querySelector('.stars-outer');
+  const starsInner = form.querySelector('.stars-inner');
 
-  const totalWidthString = window.getComputedStyle(starsOuter).width;
-  const totalWidth = parseFloat(totalWidthString.substr(0, totalWidthString.indexOf('px')));
+  let totalWidth;
+  requestAnimationFrame(() => {
+    const totalWidthString = window.getComputedStyle(starsOuter).width;
+    totalWidth = parseFloat(totalWidthString.substr(0, totalWidthString.indexOf('px')));
+  });
+
   starsOuter.addEventListener('click', (e) => {
-    const calculatedWidth = Math.round(e.offsetX * 10) / 10;
+    const calculatedWidth = Math.round(e.offsetX/totalWidth * 5) / 5 * totalWidth;
     starsInner.style.width = `${calculatedWidth}px`;
     ratingInput.value = widthToRating(calculatedWidth);
   });
@@ -143,14 +251,14 @@ addListenerToRatingStars = () => {
   ratingInput.addEventListener('input', (e) => {
     const rating = e.target.value;
     starsInner.style.width = `${ratingToWidth(rating)}px`;
-  })
+  });
 
   const widthToRating = (width) => {
-    return Math.round((width/totalWidth)*5 * 10) / 10;
+    return Math.round((width/totalWidth)*5 * 2) / 2;
   }
 
   const ratingToWidth = (rating) => {
-    return Math.round((rating/5)*totalWidth * 10) / 10;
+    return Math.round((rating/5)*totalWidth * 2) / 2;
   }
 }
 
@@ -158,13 +266,67 @@ addListenerToRatingStars = () => {
  * Create review HTML and add it to the webpage.
  */
 createReviewHTML = (review) => {
+  const ul = document.querySelector('#reviews-list');
+
   const li = document.createElement('li');
+  const uid = generateUUID();
+  li.id = `li-${uid}`;
+
+  // header of review container
+  const nameAndMenuContainer = document.createElement('div');
+  nameAndMenuContainer.classList.add('name-and-menu');
+
   const name = document.createElement('p');
   name.innerHTML = review.name;
-  li.appendChild(name);
+  nameAndMenuContainer.appendChild(name);
+
+  /* Start menu */
+  // popup for modifying or deleting review
+  const menu = document.createElement('div');
+  const checkboxInput = document.createElement('input');
+  checkboxInput.type = 'checkbox';
+  const checkoxId = `checkbox-${uid}`;
+  checkboxInput.id = checkoxId;
+  menu.appendChild(checkboxInput);
+  
+  const checkboxLabel = document.createElement('label');
+  checkboxLabel.innerHTML = '⋮';
+  checkboxLabel.htmlFor = checkoxId;
+  menu.appendChild(checkboxLabel);
+
+  const modifyAndDeleteContainer = document.createElement('div');
+  modifyAndDeleteContainer.classList.add('menu-options');
+
+  // modify review
+  const modifyButton = document.createElement('button');
+  modifyButton.innerHTML = 'Modify';
+  modifyButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const li = document.querySelector(`#li-${uid}`);
+    const newLi = modifyFormHTML(review);
+    console.log('modify', 'li = ', li, 'newLi = ', newLi);
+    ul.replaceChild(newLi, li);
+  });
+  modifyAndDeleteContainer.appendChild(modifyButton);
+
+  // delete review
+  const deleteButton = document.createElement('button');
+  deleteButton.innerHTML = 'Delete';
+  deleteButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const li = document.querySelector(`#li-${uid}`);
+    ul.removeChild(li);
+    deleteReviewHTML(review);
+    console.log('delete', li);
+  });
+  modifyAndDeleteContainer.appendChild(deleteButton);
+  menu.appendChild(modifyAndDeleteContainer);
+  /* End menu */
+
+  nameAndMenuContainer.appendChild(menu);
+  li.appendChild(nameAndMenuContainer);
 
   const date = document.createElement('p');
-  // date.innerHTML = review.date;
   date.innerHTML = (new Date(review.updatedAt)).toDateString();
   li.appendChild(date);
 
@@ -180,46 +342,198 @@ createReviewHTML = (review) => {
 }
 
 /**
+ * Util method to generate a unique uuid
+ * From: https://www.w3resource.com/javascript-exercises/javascript-math-exercise-23.php
+ */
+const generateUUID = () => {
+  let d = new Date().getTime();
+  let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      let r = (d + Math.random()*16)%16 | 0;
+      d = Math.floor(d/16);
+      return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+  });
+  return uuid;
+};
+
+/**
  * Create review form HTML and add it to the webpage.
  */
 createReviewFormHTML = () => {
   const li = document.createElement('li');
-  const form = document.querySelector('template#form-template').content.querySelector('#review-form');
+  const form = document.querySelector('template#form-template').content.cloneNode(true).querySelector('#review-form');
   
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    console.log(e);
-    const ratingInput = form.querySelector('#rating');
-    const commentTextarea = form.querySelector('#comment');
-    const formLi = form.parentElement;
+  form.addEventListener('submit', formAddSumbitCallback);
+  addListenerToRatingStars(form);
+  li.appendChild(form);
+  return li;
+}
 
-    const ul = document.getElementById('reviews-list');
+/**
+ * Form Add submit callback
+ */
+const formAddSumbitCallback = function(e) {
+  e.preventDefault();
+  console.log('this = ', this);
+  const nameInput =  this.querySelector('#name');
+  const ratingInput = this.querySelector('#rating');
+  const commentTextarea = this.querySelector('#comment');
+  const formLi = this.parentElement;
 
-    const review = {
-      id: parseInt(ul.childNodes.length) + 1,
-      restaurant_id: self.restaurant.id,
-      name: self.restaurant.name,
-      rating: parseFloat(ratingInput.value),
-      createdAt: Number(new Date),
-      updatedAt: Number(new Date),
-      comments: commentTextarea.value
-    };
+  const ul = document.querySelector('#reviews-list');
 
-    ul.insertBefore(createReviewHTML(review), formLi);
-    console.log('review object = ', review);
+  const newReview = {
+    id: self.allReviews.length + 1,
+    restaurant_id: self.restaurant.id,
+    name: nameInput.value,
+    rating: parseFloat(ratingInput.value),
+    comments: commentTextarea.value,
+    createdAt: Number(new Date()),
+    updatedAt: Number(new Date())
+  };
+  self.allReviews.push(newReview);
+  console.log('newReview = ', newReview);
 
-    fetch('http://localhost:1337/reviews/', {
+  ul.insertBefore(createReviewHTML(newReview), formLi);
+
+  const addReview = () => {
+    return fetch('http://localhost:1337/reviews/', {
       method: 'POST',
-      body: JSON.stringify(review),
+      body: JSON.stringify(newReview),
       headers: {
         'content-type': 'application/json'
       }
+    });
+  }
+
+  // IndexedDB first
+  DBHelper.addReview(newReview);
+  // Network
+  addReview()
+    .then(response => {
+      console.log(response.json());
+      if (navigator.onLine) {
+        window.removeEventListener('online', addReview);
+      }
     })
-    .then(response => console.log(response.json()))
-    .catch(e => console.log(e));
+    .catch(e => {
+      console.log(e);
+      if (!navigator.onLine) {
+        window.addEventListener('online', addReview);
+      }
+    });
+  
+  const resetInputValues = () => {
+    nameInput.value = null;
+    ratingInput.value = null;
+    commentTextarea.value = null;
+  }
+  resetInputValues();
+}
+
+/**
+ * Modify form template.
+ */
+modifyFormHTML = (review) => {
+  const li = document.createElement('li');
+  const formLi = createReviewFormHTML();
+  const form = formLi.querySelector('form');
+
+  const nameInput =  form.querySelector('#name');
+  nameInput.value = review.name;
+  const ratingInput = form.querySelector('#rating');
+  ratingInput.value = review.rating;
+  const commentTextarea = form.querySelector('#comment');
+  commentTextarea.value = review.comments;
+
+  form.removeEventListener('submit', formAddSumbitCallback);
+  
+  form.addEventListener('submit', function(e) {
+    formModifyCallback(e, review);
   });
   li.appendChild(form);
   return li;
+}
+
+/**
+ * Form Modify submit callback
+ */
+const formModifyCallback = function(e, review) {
+  e.preventDefault();
+  const form = e.target;
+  const li = form.parentElement;
+  const nameInput =  form.querySelector('#name');
+  const ratingInput = form.querySelector('#rating');
+  const commentTextarea = form.querySelector('#comment');
+
+  const ul = document.querySelector('#reviews-list');
+  console.log('REVIEW = ', review);
+
+  const updatedReview = {
+    id: review.id,
+    restaurant_id: review.restaurant_id,
+    name: nameInput.value,
+    rating: parseFloat(ratingInput.value),
+    comments: commentTextarea.value,
+    updatedAt: Number(new Date())
+  };
+  const newLi = createReviewHTML(updatedReview);
+  console.log('newLi = ', newLi);
+  ul.replaceChild(newLi, li);
+
+  const modifyReview = () => {
+    return fetch(`http://localhost:1337/reviews/${review.id}`, {
+      method: 'PUT',
+      body: JSON.stringify(updatedReview),
+      headers: {
+        'content-type': 'application/json'
+      }
+    });
+  }
+
+  // IndexedDB before
+  DBHelper.modifyReview(updatedReview);
+  // Network
+  modifyReview()
+    .then(response => {
+      console.log(response.json());
+      if (navigator.onLine) {
+        window.removeEventListener('online', modifyReview);
+      }
+    })
+    .catch(e => {
+      console.log(e);
+      if (!navigator.onLine) {
+        window.addEventListener('online', modifyReview);
+      }
+    });
+}
+
+/**
+ * Delete review template.
+ */
+deleteReviewHTML = (review) => {
+  const deleteReview = () => {
+    return fetch(`http://localhost:1337/reviews/${review.id}`, {
+      method: 'DELETE',
+    });
+  }
+
+  // IndexedDB before
+  DBHelper.deleteReview(review);
+  // Network
+  deleteReview()
+    .then(response => {
+      console.log(response.json());
+      if (navigator.onLine) {
+        window.removeEventListener('online', deleteReview);
+      }
+    })
+    .catch(e => {
+      console.log(e);
+      if (!navigator.onLine) {
+        window.addEventListener('online', deleteReview);
+      }
+    });
 }
 
 /**

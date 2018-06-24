@@ -347,6 +347,75 @@ nav h1 a {
   margin: 0 0 10px;
 }
 
+.name-and-favorite {
+  display: grid;
+  grid-template-columns: auto 56px;
+}
+
+.name-and-menu {
+  display: grid;
+  grid-template-columns: auto 10px;
+}
+
+.favorite-toogle {
+  color: var(--mws-default-clr)!important;
+}
+
+.name-and-favorite button {
+  font-size: 32px;
+  outline: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--mws-lightgrey);
+}
+
+.name-and-menu label {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.name-and-menu input {
+  display: none;
+}
+
+.name-and-menu input:checked ~ .menu-options {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.name-and-menu input:not(:checked) ~ .menu-options {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-options {
+  background: var(--mws-cuisine-clr);
+  padding: 5px;
+  position: absolute;
+  right: 32px;
+  top: 5px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.menu-options button {
+  color: var(--mws-default-clr);
+  margin: 4px 0;
+  padding: 5px 10px;
+  border: 0;
+  outline: 0;
+  cursor: pointer;
+}
+
+.menu-options button:hover {
+  background: var(--mws-default-clr);
+  color: var(--mws-white);
+}
+
 #restaurant-hours {
   margin: auto;
 }
