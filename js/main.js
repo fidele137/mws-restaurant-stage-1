@@ -4,19 +4,6 @@ let restaurants,
 var map;
 var markers = [];
 
-// // Add an Intersection observer to load only images wich are inside the viewport and its surroundings
-// // https://w3c.github.io/IntersectionObserver/
-// var observer = new IntersectionObserver(changes => {
-//   for (const change of changes) {
-//     console.log(change.time);               // Timestamp when the change occurred
-//     console.log(change.rootBounds);         // Unclipped area of root
-//     console.log(change.boundingClientRect); // target.boundingClientRect()
-//     console.log(change.intersectionRect);   // boundingClientRect, clipped by its containing block ancestors, and intersected with rootBounds
-//     console.log(change.intersectionRatio);  // Ratio of intersectionRect area to boundingClientRect area
-//     console.log(change.target);             // the Element target
-//   }
-// }, {});
-
 /**
  * Fetch neighborhoods and cuisines as soon as the page is loaded.
  */
@@ -24,31 +11,41 @@ document.addEventListener('DOMContentLoaded', (event) => {
   fetchNeighborhoods();
   fetchCuisines();
   registerServiceWorker();
-  // observeImages();
 });
 
 /**
- * Observe images position from viewport
+ * Add an Intersection observer to lazy images
  */
-// observeImages = () => {
-//   const targets = document.querySelectorAll('.restaurant-img');
-//   console.log('targets = ', targets);
-
-//   // Watch for intersection events on a specific target Element.
-//   targets.forEach((target) => {
-//     observer.observe(target);
-//   });
-
-//   // // Stop watching for intersection events on a specific target Element.
-//   // targets.forEach((target) => {
-//   //   observer.unobserve(target);
-//   // });
-
-//   // // Stop observing threshold events on all target elements.
-//   // targets.forEach((target) => {
-//   //   observer.disconnect();
-//   // });
-// }
+observeImages = () => {
+  if (!window.IntersectionObserver) {
+    console.log('Your navigator does not support IntersectionObserver');
+    return;
+  } else {
+    const lazyImagesObserver = new IntersectionObserver((entries, observer) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          console.log('entry = ', entry);
+          const lazyImage = entry.target;
+          lazyImage.src = lazyImage.dataset.src;
+          lazyImage.srcset = lazyImage.dataset.srcset;
+          lazyImage.sizes = lazyImage.dataset.sizes;
+          lazyImage.classList.remove('lazy');
+          lazyImagesObserver.unobserve(lazyImage);
+        }
+      });
+    }, {
+      root: null,
+      rootMargin: '0px',
+      threshold: 0
+    });
+  
+    let lazyImages = [...document.querySelectorAll('img.lazy')];
+    console.log('targets = ', lazyImages);
+    lazyImages.forEach((lazyImage) => {
+      lazyImagesObserver.observe(lazyImage);
+    });
+  }
+}
 
 /**
  * Register ServiceWorker at page load
@@ -141,6 +138,7 @@ window.initMap = () => {
     lat: 40.722216,
     lng: -73.987501
   };
+
   self.map = new google.maps.Map(document.getElementById('map'), {
     zoom: 12,
     center: loc,
@@ -168,6 +166,7 @@ updateRestaurants = () => {
     } else {
       resetRestaurants(restaurants);
       fillRestaurantsHTML();
+      observeImages();
     }
   })
 }
@@ -205,11 +204,14 @@ createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
   const image = document.createElement('img');
-  image.className = 'restaurant-img';
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
-  image.srcset = DBHelper.imageSrcsetUrlsForRestaurant(restaurant);
-  image.sizes = DBHelper.imageSizes();
+  image.className = 'restaurant-img lazy';
+
+  image.src = DBHelper.imageUrlPlaceholder(); // placehoder img
   image.alt = DBHelper.imageAltForRestaurant(restaurant);
+
+  image.dataset.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.dataset.srcset = DBHelper.imageSrcsetUrlsForRestaurant(restaurant);
+  image.dataset.sizes = DBHelper.imageSizes();
   li.append(image);
 
   const name = document.createElement('h2');
