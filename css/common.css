@@ -1,0 +1,179 @@
+
+/* Variables */
+:root {
+  --mws-white: #fff;
+  --mws-black: #000;
+  --mws-lightgrey: lightgrey;
+  --mws-body-bg: #fdfdfd;
+  --mws-333: #333;
+  --mws-666: #666;
+  --mws-breadcrumb-hover: #01447e;
+  --mws-nav-bg: #252831;
+  --mws-a-clr: #0000a0;
+  --mws-bg: #f3f3f3;
+  --mws-map-bg: #ccc;
+  --mws-default-clr: #800000;
+  --mws-filter-bg: #3397db;
+  --mws-cuisine-clr: #ddd;
+  --mws-border-clr: #eee;
+  --mws-footer-clr: #f5f5f5;
+  --mws-footer-bg: #444;
+  --mws-footer-link-clr: #e9e97c;
+  --mws-rvw-border: #d9d9d9;
+}
+
+/* CSS Document */
+
+img {
+  width: 100%;
+  max-width: 100%;
+}
+
+body,
+td,
+th,
+p {
+  font: 10pt/1.5 Arial, Helvetica, sans-serif;
+	color: var(--mws-333);
+}
+
+body {
+  position: relative;
+	background-color: var(--mws-body-bg);
+  margin: 0;
+}
+
+noscript {
+  display: flex;
+  text-align: center;
+  font-size: 32px;
+}
+
+ul,
+li {
+  font: 10pt Arial, Helvetica, sans-serif;
+	color: var(--mws-333);
+}
+
+a {
+	color: var(--mws-default-clr);
+	text-decoration: none;
+}
+
+a:hover,
+a:focus {
+	color: var(--mws-filter-bg);
+	text-decoration: none;
+}
+
+a img{
+	border: none 0px var(--mws-white);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: Arial, Helvetica, sans-serif;
+  margin: 0 0 20px;
+}
+
+article,
+aside,
+canvas,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+menu,
+nav,
+section {
+	display: block;
+}
+
+main {
+  background-color: var(--mws-bg);
+  min-height: 100%;
+}
+
+footer {
+  background-color: var(--mws-footer-bg);
+  color: var(--mws-footer-clr);
+  font-size: 8pt;
+  letter-spacing: 1px;
+  padding: 25px;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+footer a {
+  color: var(--mws-footer-link-clr);
+}
+
+/* ====================== Navigation ====================== */
+
+nav {
+  display: flex;
+  width: 100%;
+  height: 80px;
+  background-color: var(--mws-nav-bg);
+  text-align: center;
+}
+
+nav h1 {
+  margin: auto;
+}
+
+nav h1 a {
+  color: var(--mws-white);
+  font-size: 14pt;
+  font-weight: 200;
+  letter-spacing: 10px;
+  text-transform: uppercase;
+}
+
+#breadcrumb {
+  padding: 10px 40px 16px;
+  list-style: none;
+  background-color: var(--mws-border-clr);
+  font-size: 17px;
+  margin: 0;
+  max-width: 100%;
+}
+
+/* Display list items side by side */
+#breadcrumb li {
+  display: inline;
+}
+
+/* Add a slash symbol (/) before/behind each list item */
+#breadcrumb li+li:before {
+  padding: 8px;
+  color: var(--mws-black);
+  content: "/\00a0";
+}
+
+/* Add a color to all links inside the list */
+#breadcrumb li a {
+  color: var(--mws-a-clr);
+  text-decoration: none;
+}
+
+/* Add a color on mouse-over */
+#breadcrumb li a:hover {
+  color: var(--mws-breadcrumb-hover);
+  text-decoration: underline;
+}
+
+/* ====================== Map ====================== */
+
+#map {
+  min-height: 50vw;
+  width: 100%;
+  max-width: 100%;
+  background-color: var(--mws-map-bg);
+}

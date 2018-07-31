@@ -1,0 +1,261 @@
+
+/* ====================== Restaurant Details ====================== */
+
+.inside header {
+  width: 100%;
+  z-index: 1000;
+}
+
+.inside #map-container {
+  background: none none repeat scroll 0 0;
+  width: 100%;
+}
+
+.inside #map {
+  background-color: var(--mws-map-bg);
+  min-height: 50vw;
+  width: 100%;
+}
+
+#restaurant-name {
+  color: var(--mws-default-clr);
+  font: 200 20pt/1.1 Arial,sans-serif;
+  letter-spacing: 0;
+  margin: 15px 0 30px;
+  text-transform: uppercase;
+}
+
+#restaurant-address {
+  font-size: 12pt;
+  text-align: center;
+}
+
+#restaurant-cuisine {
+  background-color: var(--mws-333);
+  color: var(--mws-cuisine-clr);
+  font: 300 12pt;
+  letter-spacing: 10px;
+  margin-bottom: 20px;
+  padding: 2px 0;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+#restaurant-container,
+#reviews-container {
+  border-bottom: 1px solid var(--mws-rvw-border);
+  border-top: 1px solid var(--mws-white);
+  padding: 40px;
+}
+
+#reviews-container h2 {
+  color: var(--mws-default-clr);
+  font-size: 300 24pt;
+  letter-spacing: -1px;
+  padding-bottom: 1pt;
+}
+
+#reviews-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+}
+
+#reviews-list li {
+  background-color: var(--mws-white);
+  border: 2px solid var(--mws-bg);
+  display: block;
+  list-style-type: none;
+  overflow: hidden;
+  padding: 10px;
+  position: relative;
+}
+
+#reviews-list li p {
+  margin: 0 0 10px;
+}
+
+.name-and-favorite {
+  display: grid;
+  grid-template-columns: auto 56px;
+}
+
+.name-and-menu {
+  display: grid;
+  grid-template-columns: auto 10px;
+}
+
+.favorite-toogle {
+  color: var(--mws-default-clr)!important;
+}
+
+.name-and-favorite button {
+  font-size: 32px;
+  outline: none;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--mws-666);
+}
+
+.name-and-menu label {
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.name-and-menu input {
+  display: none;
+}
+
+.name-and-menu input:checked ~ .menu-options {
+  opacity: 1;
+  pointer-events: all;
+}
+
+.name-and-menu input:not(:checked) ~ .menu-options {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-options {
+  background: var(--mws-cuisine-clr);
+  padding: 5px;
+  position: absolute;
+  right: 32px;
+  top: 5px;
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.menu-options button {
+  color: var(--mws-default-clr);
+  margin: 4px 0;
+  padding: 5px 10px;
+  border: 0;
+  outline: 0;
+  cursor: pointer;
+}
+
+.menu-options button:hover {
+  background: var(--mws-default-clr);
+  color: var(--mws-white);
+}
+
+#restaurant-hours {
+  margin: auto;
+}
+
+#restaurant-hours td {
+  color: var(--mws-666);
+}
+
+/* Review form */
+form#review-form {
+  display: grid;
+  grid-template-columns: 1fr 3fr;
+  grid-gap: 0.6rem;
+  align-items: center;
+}
+
+#review-form h3 {
+  color: var(--mws-default-clr);
+  grid-column: span 2;
+  text-align: center;
+}
+
+#review-form label {
+  font-weight: 700;
+  text-align: right;
+}
+
+.rating-container {
+  display: flex;
+  align-items: center;
+}
+
+.stars-outer {
+  font-size: 24px;
+  position: relative;
+  display: inline-block;
+  /* width: fit-content; */
+  margin-right: .6rem;
+}
+
+.stars-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.stars-outer::before {
+  content: '★ ★ ★ ★ ★';
+  color: var(--mws-lightgrey);
+}
+
+.stars-inner::before {
+  content: '★ ★ ★ ★ ★';
+  color: var(--mws-default-clr);
+}
+
+#review-form button[type="submit"] {
+  grid-column: 2/3;
+  background: var(--mws-default-clr);
+  color: var(--mws-bg);
+  padding: 10px 0;
+  border: none;
+  outline: none;
+  text-transform: uppercase;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow:
+    0 2px 2px 0 rgba(0, 0, 0, 0.14),
+    0 1px 5px 0 rgba(0, 0, 0, 0.12),
+    0 3px 1px -2px rgba(0, 0, 0, 0.2);
+}
+
+/* ====================== Screens of size >= 769px  ====================== */
+
+@media screen and (min-width: 769px) {
+
+  #restaurants-list,
+  #reviews-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  #map,
+  .inside #map {
+    min-height: 30vw;
+  }
+
+}
+
+/* ====================== Screens of size >= 1280px  ====================== */
+
+@media screen and (min-width: 1280px) {
+
+  #restaurants-list,
+  #reviews-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+}
+
+/* ====================== Screens of size >= 1600px  ====================== */
+
+@media screen and (min-width: 1600px) {
+  
+  #maincontent {
+    width: 1600px;
+    margin: auto;
+  }
+
+}
