@@ -260,13 +260,13 @@ addListenerToRatingStars = form => {
 
 	starsOuter.addEventListener('click', e => {
 		const calculatedWidth = (Math.round((e.offsetX / totalWidth) * 5) / 5) * totalWidth;
-		starsInner.style.width = `${calculatedWidth}px`;
 		ratingInput.value = widthToRating(calculatedWidth);
+		requestAnimationFrame(() => (starsInner.style.width = `${calculatedWidth}px`));
 	});
 
 	ratingInput.addEventListener('input', e => {
 		const rating = e.target.value;
-		starsInner.style.width = `${ratingToWidth(rating)}px`;
+		requestAnimationFrame(() => (starsInner.style.width = `${ratingToWidth(rating)}px`));
 	});
 
 	function widthToRating(width) {
@@ -275,6 +275,12 @@ addListenerToRatingStars = form => {
 
 	function ratingToWidth(rating) {
 		return Math.round((rating / 5) * totalWidth * 2) / 2;
+	}
+
+	if (ratingInput.value != null) {
+		requestAnimationFrame(
+			() => (starsInner.style.width = `${ratingToWidth(parseFloat(ratingInput.value))}px`)
+		);
 	}
 };
 
@@ -443,6 +449,8 @@ const formAddSumbitCallback = function(e) {
 		nameInput.value = null;
 		ratingInput.value = null;
 		commentTextarea.value = null;
+		const starsInner = this.querySelector('.stars-inner');
+		requestAnimationFrame(() => (starsInner.style.width = `0`));
 	};
 	resetInputValues();
 };
@@ -459,6 +467,7 @@ modifyFormHTML = review => {
 	nameInput.value = review.name;
 	const ratingInput = form.querySelector('#rating');
 	ratingInput.value = review.rating;
+
 	const commentTextarea = form.querySelector('#comment');
 	commentTextarea.value = review.comments;
 

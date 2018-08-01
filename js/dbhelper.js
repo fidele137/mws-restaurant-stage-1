@@ -162,7 +162,13 @@ class DBHelper {
 		DBHelper.openIndexedDB(db => {
 			var tx = db.transaction('restaurants', 'readwrite');
 			var restaurantStore = tx.objectStore('restaurants');
-			restaurantStore.put(restaurant);
+			// get restaurant from idb, update then save it back to idb
+			var request = restaurantStore.get(restaurant.id);
+			request.onsuccess = event => {
+				let restaurantToUpdate = event.target.result;
+				restaurantToUpdate = Object.assign({}, restaurantToUpdate, restaurant);
+				restaurantStore.put(restaurantToUpdate);
+			};
 		});
 	}
 
