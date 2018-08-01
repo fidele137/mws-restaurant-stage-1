@@ -10,6 +10,7 @@ This is a restaurant reviews's app
 
 - Install the latest version of [`node.js`](https://nodejs.org/)
 - Install [`git`](https://git-scm.com/)
+- Install Chrome Canary navigator (important for the latest features and improvements of Lighthouse audits): `https://www.google.com/intl/fr_ALL/chrome/canary/`
 
 ### Running the project
 
