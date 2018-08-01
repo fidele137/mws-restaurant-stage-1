@@ -1,6 +1,6 @@
 let restaurants, neighborhoods, cuisines;
 var map;
-var mapContent;
+var showMap = false;
 var markers = [];
 
 /**
@@ -148,19 +148,22 @@ createMapHTML = () => {
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
-	let loc = {
-		lat: 40.722216,
-		lng: -73.987501
-	};
-
-	self.mapContent = createMapHTML();
-
-	// self.map = new google.maps.Map(document.getElementById('map'), {
-	self.map = new google.maps.Map(self.mapContent, {
-		zoom: 12,
-		center: loc,
-		scrollwheel: false
+	const mapButton = document.querySelector('.map-button');
+	mapButton.addEventListener('click', () => {
+		showMap = true;
+		let loc = {
+			lat: 40.722216,
+			lng: -73.987501
+		};
+		
+		self.map = new google.maps.Map(document.getElementById('map'), {
+			zoom: 12,
+			center: loc,
+			scrollwheel: false
+		});
+		addMarkersToMap();
 	});
+
 	updateRestaurants();
 };
 
@@ -179,7 +182,6 @@ updateRestaurants = () => {
 
 	DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
 		if (error) {
-			// Got an error!
 			console.error(error);
 		} else {
 			resetRestaurants(restaurants);
@@ -199,8 +201,10 @@ resetRestaurants = restaurants => {
 	ul.innerHTML = '';
 
 	// Remove all map markers
-	self.markers.forEach(m => m.setMap(null));
-	self.markers = [];
+	if (showMap) {
+		self.markers.forEach(m => m.setMap(null));
+		self.markers = [];
+	}
 	self.restaurants = restaurants;
 };
 
@@ -256,12 +260,14 @@ createRestaurantHTML = restaurant => {
  * Add markers for current restaurants to the map.
  */
 addMarkersToMap = (restaurants = self.restaurants) => {
-	restaurants.forEach(restaurant => {
-		// Add marker to the map
-		const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
-		google.maps.event.addListener(marker, 'click', () => {
-			window.location.href = marker.url;
+	if (showMap) {
+		restaurants.forEach(restaurant => {
+			// Add marker to the map
+			const marker = DBHelper.mapMarkerForRestaurant(restaurant, self.map);
+			google.maps.event.addListener(marker, 'click', () => {
+				window.location.href = marker.url;
+			});
+			self.markers.push(marker);
 		});
-		self.markers.push(marker);
-	});
+	}
 };

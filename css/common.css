@@ -176,4 +176,7 @@ nav h1 a {
   width: 100%;
   max-width: 100%;
   background-color: var(--mws-map-bg);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
