@@ -1,4 +1,4 @@
-# Mobile Web Specialist Certification Course
+# Mobile Web Specialist Certification Project
 
 ---
 
@@ -27,7 +27,7 @@ This is a restaurant reviews's app
 - Run `npm run start` to bootstrap the app
 - Navigate to `https://localhost:/8443` and click `Proceed to localhost` in the `Advanced settings` to see the project
 
-### To generate a new SSL certificate an key
+### To generate a new SSL certificate key
 
 - Run `openssl req -x509 -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -keyout config/localhost-privkey.pem -out config/localhost-cert.pem`
 
