@@ -30,3 +30,7 @@ This is a restaurant reviews's app
 ### To generate a new SSL certificate an key
 
 - Run `openssl req -x509 -newkey rsa:2048 -nodes -sha256 -subj '/CN=localhost' -keyout config/localhost-privkey.pem -out config/localhost-cert.pem`
+
+### Lighthouse scores:
+
+![Lighthouse audit screenshot](lighthouse_audit.png)
