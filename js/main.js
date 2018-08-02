@@ -155,7 +155,7 @@ window.initMap = () => {
 			lat: 40.722216,
 			lng: -73.987501
 		};
-		
+
 		self.map = new google.maps.Map(document.getElementById('map'), {
 			zoom: 12,
 			center: loc,
@@ -250,6 +250,7 @@ createRestaurantHTML = restaurant => {
 
 	const more = document.createElement('a');
 	more.innerHTML = 'View Details';
+	more.ariaLabel = `View Details of ${restaurant.name} restaurant`;
 	more.href = DBHelper.urlForRestaurant(restaurant);
 	li.append(more);
 
