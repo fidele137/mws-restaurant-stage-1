@@ -1,7 +1,3 @@
-# Mobile Web Specialist Certification Project
-
----
-
 ## My finished project from _Google_ and _Udacity_ Certification `Mobile Web Specialist`
 
 This is a restaurant reviews's app
