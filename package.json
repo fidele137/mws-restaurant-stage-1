@@ -11,6 +11,9 @@
 		"type": "git",
 		"url": "git+https://github.com/fidele137/mws-restaurant-stage-1.git"
 	},
+	"engines": {
+		"node": "8"
+	},
 	"author": "Fidèle Palouki",
 	"license": "MIT",
 	"bugs": {
