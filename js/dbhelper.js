@@ -294,7 +294,7 @@ class DBHelper {
 	 */
 	static fetchReviewsFromNetwork(callback) {
 		// Trying to fetch all reviews with *REVIEWS_URL* doesn't work (bug with the server)
-		// So we will get reviews from each restaurants and concatenate the results
+		// So we will get reviews from each restaurant and concatenate the results
 
 		/* fetch(DBHelper.REVIEWS_URL)
       .then((response) => {
